@@ -2,7 +2,13 @@ from pathlib import Path
 
 import pytest
 
-from dcmd.utils.paths import project_root, scripts_directory
+from dcmd.utils.paths import (
+    project_root,
+    runtime_root,
+    scripts_directory,
+    startup_launch_command,
+    startup_working_directory,
+)
 from dcmd.utils.validators import (
     require_mapping_keys,
     require_string,
@@ -47,3 +53,24 @@ def test_require_string_returns_string() -> None:
 
 def test_scripts_directory_uses_project_root() -> None:
     assert scripts_directory() == project_root() / "scripts"
+
+
+def test_runtime_root_uses_executable_parent_when_frozen() -> None:
+    executable_path = Path("C:/DCMD/DCMD.exe")
+    assert runtime_root(frozen=True, executable_path=executable_path) == Path("C:/DCMD")
+
+
+def test_runtime_root_uses_meipass_when_available() -> None:
+    meipass_path = Path("C:/DCMD/_internal")
+    assert runtime_root(frozen=True, meipass_path=meipass_path) == meipass_path
+
+
+def test_startup_launch_command_uses_executable_when_frozen() -> None:
+    executable_path = Path("C:/DCMD/DCMD.exe")
+    assert startup_launch_command(executable_path=executable_path, frozen=True) == (
+        "C:\\DCMD\\DCMD.exe",
+    )
+
+
+def test_startup_working_directory_uses_src_in_source_mode() -> None:
+    assert startup_working_directory(frozen=False) == project_root() / "src"

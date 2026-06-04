@@ -9,6 +9,8 @@ def show_and_focus_window(window: QWidget) -> None:
         >>> isinstance(window, QWidget)
     """
     window.show()
+    window.showNormal()
     window.setWindowState(window.windowState() & ~Qt.WindowState.WindowMinimized)
     window.raise_()
     window.activateWindow()
+    window.setFocus(Qt.FocusReason.ActiveWindowFocusReason)

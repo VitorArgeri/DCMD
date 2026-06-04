@@ -10,9 +10,22 @@ from dcmd.core.command_registry import CommandRegistry, load_command_registry
 from dcmd.core.history import InputHistory, SessionHistory
 from dcmd.integrations.global_hotkey import WindowsGlobalHotkey, load_hotkey_binding
 from dcmd.integrations.process_launcher import ProcessLauncher, SubprocessCommandRunner
-from dcmd.integrations.single_instance import SingleWindowFactory
+from dcmd.integrations.single_instance import (
+    SingleInstanceGuard,
+    SingleWindowFactory,
+    WindowsNamedMutex,
+)
+from dcmd.integrations.windows_startup import (
+    WindowsStartupManager,
+    load_startup_enabled,
+    startup_directory,
+)
 from dcmd.runners.script_runner import SecureScriptRunner
-from dcmd.utils.paths import project_root
+from dcmd.utils.paths import (
+    config_directory,
+    startup_launch_command,
+    startup_working_directory,
+)
 
 PROMPT_TEXT = "What command do you want to use?"
 
@@ -107,26 +120,33 @@ def run_application() -> int:
 
     from dcmd.ui.main_window import MainWindow
 
+    instance_guard = SingleInstanceGuard(WindowsNamedMutex("DCMD"))
+    if not instance_guard.acquire():
+        return 0
     app = QApplication([])
-    service = build_command_service()
-    window_factory = SingleWindowFactory[MainWindow]()
-    hotkey_bridge = HotkeySignalBridge()
-    window = window_factory.get_or_create(lambda: MainWindow(service))
-    hotkey_bridge.activated.connect(window.show_and_focus)
-    listener = _build_hotkey_listener()
-    _start_hotkey_listener(listener, hotkey_bridge)
-    window.show_and_focus()
-    exit_code = app.exec()
-    listener.stop()
-    return exit_code
+    try:
+        service = build_command_service()
+        window_factory = SingleWindowFactory[MainWindow]()
+        hotkey_bridge = HotkeySignalBridge()
+        window = window_factory.get_or_create(lambda: MainWindow(service))
+        hotkey_bridge.activated.connect(window.show_and_focus)
+        listener = _build_hotkey_listener()
+        _sync_startup_setting()
+        _start_hotkey_listener(listener, hotkey_bridge)
+        window.show_and_focus()
+        exit_code = app.exec()
+        listener.stop()
+        return exit_code
+    finally:
+        instance_guard.release()
 
 
 def _commands_path() -> Path:
-    return project_root() / "config" / "commands.json"
+    return config_directory() / "commands.json"
 
 
 def _settings_path() -> Path:
-    return project_root() / "config" / "settings.json"
+    return config_directory() / "settings.json"
 
 
 def _build_hotkey_listener() -> WindowsGlobalHotkey:
@@ -142,6 +162,16 @@ def _start_hotkey_listener(
         listener.start(bridge.activated.emit)
     except OSError:
         return
+
+
+def _sync_startup_setting() -> None:
+    startup_enabled = load_startup_enabled(_settings_path())
+    manager = WindowsStartupManager(startup_directory())
+    manager.sync(
+        startup_enabled,
+        startup_launch_command(),
+        startup_working_directory(),
+    )
 
 
 def _display_message(parsed: object, result: ExecutionResult) -> str:
