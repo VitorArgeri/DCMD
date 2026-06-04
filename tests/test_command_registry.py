@@ -66,7 +66,12 @@ def test_load_command_registry_returns_known_names() -> None:
 
 
 def test_build_command_registry_requires_commands_mapping() -> None:
-    payload = {"browser": {}, "commands": [], "search_engines": {}, "scripts": {}}
+    payload = {
+        "browser": {"name": "Opera GX", "path": "C:/Opera/launcher.exe"},
+        "commands": [],
+        "search_engines": {},
+        "scripts": {},
+    }
     with pytest.raises(ValueError, match="JSON object field"):
         build_command_registry(payload)
 

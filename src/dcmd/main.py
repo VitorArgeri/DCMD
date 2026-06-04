@@ -1,5 +1,6 @@
 import sys
 
+from dcmd.app import run_application
 from dcmd.core.command_executor import CommandExecutor
 from dcmd.core.command_parser import parse_command
 from dcmd.core.command_registry import CommandRegistry, load_command_registry
@@ -25,12 +26,12 @@ def run(argv: list[str] | None = None) -> int:
 
 
 def main() -> int:
-    """Run the lightweight Sprint 02 CLI entrypoint.
+    """Start the graphical launcher application.
 
     Example:
         >>> main()
     """
-    return run()
+    return run_application()
 
 
 def _build_default_executor(registry: CommandRegistry) -> CommandExecutor:
