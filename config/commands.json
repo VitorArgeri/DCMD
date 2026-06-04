@@ -1,0 +1,40 @@
+{
+  "browser": {
+    "name": "Opera GX",
+    "path": "C:/Users/<user>/AppData/Local/Programs/Opera GX/launcher.exe"
+  },
+  "commands": {
+    "yt": {
+      "type": "open_url",
+      "url": "https://www.youtube.com"
+    },
+    "vscode": {
+      "type": "open_program",
+      "path": "C:/Users/<user>/AppData/Local/Programs/Microsoft VS Code/Code.exe"
+    }
+  },
+  "search_engines": {
+    "yt": {
+      "name": "YouTube",
+      "url_template": "https://www.youtube.com/results?search_query={query}"
+    },
+    "google": {
+      "name": "Google",
+      "url_template": "https://www.google.com/search?q={query}"
+    },
+    "github": {
+      "name": "GitHub",
+      "url_template": "https://github.com/search?q={query}"
+    },
+    "reddit": {
+      "name": "Reddit",
+      "url_template": "https://www.reddit.com/search/?q={query}"
+    }
+  },
+  "scripts": {
+    "script-1": {
+      "file": "script-1.py",
+      "description": "Example script for testing script execution."
+    }
+  }
+}

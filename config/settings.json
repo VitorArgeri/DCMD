@@ -1,0 +1,13 @@
+{
+  "hotkey": "ctrl+alt+j",
+  "theme": {
+    "background": "#050505",
+    "text": "#ffffff",
+    "accent": "#ff3b30"
+  },
+  "window": {
+    "width": 960,
+    "height": 420,
+    "centered": true
+  }
+}
