@@ -15,6 +15,20 @@ def require_mapping_keys(payload: JsonObject, key: str) -> JsonObject:
     )
 
 
+def require_string(payload: JsonObject, key: str) -> str:
+    """Return one required string field from a JSON object.
+
+    Example:
+        >>> require_string({"name": "dcmd"}, "name")
+    """
+    value = payload.get(key)
+    if isinstance(value, str) and value.strip():
+        return value
+    raise ValueError(
+        f"Invalid configuration value={key!r}; expected format='non-empty string field'."
+    )
+
+
 def validate_known_identifier(
     value: str,
     known_values: frozenset[str],

@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from dcmd.utils.paths import project_root
-from dcmd.utils.validators import require_mapping_keys, validate_known_identifier
+from dcmd.utils.paths import project_root, scripts_directory
+from dcmd.utils.validators import require_mapping_keys, require_string, validate_known_identifier
 
 
 def test_project_root_returns_repository_path() -> None:
@@ -31,3 +31,12 @@ def test_require_mapping_keys_rejects_non_mapping() -> None:
     payload = {"commands": []}
     with pytest.raises(ValueError, match="JSON object field"):
         require_mapping_keys(payload, "commands")
+
+
+def test_require_string_returns_string() -> None:
+    payload = {"name": "dcmd"}
+    assert require_string(payload, "name") == "dcmd"
+
+
+def test_scripts_directory_uses_project_root() -> None:
+    assert scripts_directory() == project_root() / "scripts"

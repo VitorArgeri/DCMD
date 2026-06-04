@@ -68,3 +68,24 @@ def test_reject_unknown_direct_command() -> None:
     result = parse_command("unknown", registry)
     assert isinstance(result, ParsedError)
     assert "expected format='registered command'" in result.message
+
+
+def test_reject_unknown_search_engine() -> None:
+    registry = load_command_registry(Path("config/commands.json"))
+    result = parse_command("search missing gameplays", registry)
+    assert isinstance(result, ParsedError)
+    assert "expected format='registered search engine'" in result.message
+
+
+def test_reject_unknown_script_identifier() -> None:
+    registry = load_command_registry(Path("config/commands.json"))
+    result = parse_command("exec missing", registry)
+    assert isinstance(result, ParsedError)
+    assert "expected format='registered script identifier'" in result.message
+
+
+def test_reject_unknown_program_identifier() -> None:
+    registry = load_command_registry(Path("config/commands.json"))
+    result = parse_command("open missing", registry)
+    assert isinstance(result, ParsedError)
+    assert "expected format='registered program identifier'" in result.message

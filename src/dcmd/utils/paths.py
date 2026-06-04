@@ -8,3 +8,12 @@ def project_root() -> Path:
         >>> project_root().name
     """
     return Path(__file__).resolve().parents[3]
+
+
+def scripts_directory() -> Path:
+    """Return the repository scripts directory.
+
+    Example:
+        >>> scripts_directory().name
+    """
+    return project_root() / "scripts"
