@@ -1,5 +1,5 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 from typing import Protocol
 
 from dcmd.core.command_registry import ScriptConfig
@@ -32,7 +32,9 @@ class SecureScriptRunner:
         python_path: Path | None = None,
     ) -> None:
         self._process_launcher = process_launcher
-        self._allowed_directory = scripts_directory() if allowed_directory is None else allowed_directory
+        self._allowed_directory = (
+            scripts_directory() if allowed_directory is None else allowed_directory
+        )
         self._python_path = Path(sys.executable) if python_path is None else python_path
 
     def run_script(self, script: ScriptConfig) -> None:
@@ -56,7 +58,9 @@ class SecureScriptRunner:
         if file_name.endswith(".py"):
             return
         raise ValueError(
-            f"Invalid script value={file_name!r}; expected format='registered .py file inside scripts folder'."
+            "Invalid script "
+            f"value={file_name!r}; "
+            "expected format='registered .py file inside scripts folder'."
         )
 
     def _validate_allowed_path(
@@ -69,12 +73,16 @@ class SecureScriptRunner:
             candidate.relative_to(allowed_root)
         except ValueError as error:
             raise ValueError(
-                f"Invalid script value={file_name!r}; expected format='path inside scripts folder'."
+                "Invalid script "
+                f"value={file_name!r}; "
+                "expected format='path inside scripts folder'."
             ) from error
 
     def _validate_existing_file(self, file_name: str, candidate: Path) -> None:
         if candidate.is_file():
             return
         raise ValueError(
-            f"Invalid script value={file_name!r}; expected format='existing registered script file'."
+            "Invalid script "
+            f"value={file_name!r}; "
+            "expected format='existing registered script file'."
         )

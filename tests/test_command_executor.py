@@ -1,7 +1,13 @@
 from pathlib import Path
 
 from dcmd.core.command_executor import CommandExecutor
-from dcmd.core.command_parser import DirectCommand, ParsedError, ProgramCommand, ScriptCommand, SearchCommand
+from dcmd.core.command_parser import (
+    DirectCommand,
+    ParsedError,
+    ProgramCommand,
+    ScriptCommand,
+    SearchCommand,
+)
 from dcmd.core.command_registry import (
     BrowserConfig,
     CommandRegistry,
@@ -36,7 +42,9 @@ def test_execute_direct_url_command_delegates_to_process_launcher() -> None:
     executor, launcher, _ = build_executor()
     result = executor.execute(DirectCommand(identifier="yt"))
     assert result.success is True
-    assert launcher.url_calls == [(Path("C:/Opera/launcher.exe"), "https://www.youtube.com")]
+    assert launcher.url_calls == [
+        (Path("C:/Opera/launcher.exe"), "https://www.youtube.com")
+    ]
 
 
 def test_execute_search_command_builds_encoded_url() -> None:
@@ -44,7 +52,10 @@ def test_execute_search_command_builds_encoded_url() -> None:
     result = executor.execute(SearchCommand(engine="google", query="python decorators"))
     assert result.success is True
     assert launcher.url_calls == [
-        (Path("C:/Opera/launcher.exe"), "https://www.google.com/search?q=python+decorators")
+        (
+            Path("C:/Opera/launcher.exe"),
+            "https://www.google.com/search?q=python+decorators",
+        )
     ]
 
 
@@ -59,7 +70,9 @@ def test_execute_script_command_delegates_to_script_runner() -> None:
     executor, _, script_runner = build_executor()
     result = executor.execute(ScriptCommand(identifier="script-1"))
     assert result.success is True
-    assert script_runner.calls == [ScriptConfig("script-1", "script-1.py", "Example script")]
+    assert script_runner.calls == [
+        ScriptConfig("script-1", "script-1.py", "Example script")
+    ]
 
 
 def test_execute_invalid_parse_result_returns_error() -> None:

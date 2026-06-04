@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont, QTextCursor
+from PySide6.QtGui import QFont, QShowEvent, QTextCursor
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -9,7 +9,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from dcmd.app import CommandSubmissionService, PROMPT_TEXT
+from dcmd.app import PROMPT_TEXT, CommandSubmissionService
+from dcmd.integrations.window_focus import show_and_focus_window
 from dcmd.ui.terminal_input import TerminalInput
 from dcmd.ui.theme import ThemeColors, build_window_stylesheet, format_history_html
 
@@ -24,12 +25,13 @@ class MainWindow(QMainWindow):
         self._history_view = QTextEdit()
         self._input = TerminalInput()
         self._prompt_label = QLabel(PROMPT_TEXT)
+        self._suggestions_label = QLabel()
         self._configure_window()
         self._build_layout()
         self._connect_events()
         self._render_history()
 
-    def showEvent(self, event: object) -> None:
+    def showEvent(self, event: QShowEvent) -> None:
         super().showEvent(event)
         self._center_on_screen()
         self._input.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
@@ -41,6 +43,9 @@ class MainWindow(QMainWindow):
         root.setObjectName("launcherRoot")
         self.setCentralWidget(root)
         self.setStyleSheet(build_window_stylesheet(self._colors))
+        self._input.set_input_history(self._command_service.input_history)
+        self._input.set_autocomplete(self._command_service.autocomplete)
+        self._input.set_suggestions_handler(self._render_suggestions)
 
     def _build_layout(self) -> None:
         root = self.centralWidget()
@@ -53,12 +58,15 @@ class MainWindow(QMainWindow):
         self._history_view.setFont(QFont("Consolas", 11))
         self._prompt_label.setObjectName("promptLabel")
         self._prompt_label.setWordWrap(True)
+        self._suggestions_label.setObjectName("suggestionsLabel")
+        self._suggestions_label.setWordWrap(True)
         prompt_row = QHBoxLayout()
         prompt_row.setSpacing(12)
         prompt_row.addWidget(self._prompt_label, 2)
         prompt_row.addWidget(self._input, 3)
         root_layout.addWidget(self._history_view, 1)
         root_layout.addLayout(prompt_row)
+        root_layout.addWidget(self._suggestions_label)
 
     def _connect_events(self) -> None:
         self._input.command_submitted.connect(self._submit_command)
@@ -67,12 +75,26 @@ class MainWindow(QMainWindow):
         outcome = self._command_service.submit(text)
         if outcome.accepted:
             self._input.clear()
+            self._render_suggestions(tuple())
         self._render_history()
 
     def _render_history(self) -> None:
-        html = format_history_html(self._command_service.history.entries(), self._colors)
+        html = format_history_html(
+            self._command_service.history.entries(), self._colors
+        )
         self._history_view.setHtml(html)
         self._history_view.moveCursor(QTextCursor.MoveOperation.End)
+
+    def _render_suggestions(self, suggestions: tuple[str, ...]) -> None:
+        if not suggestions:
+            self._suggestions_label.setText("")
+            return
+        suggestions_text = "Suggestions: " + ", ".join(suggestions)
+        self._suggestions_label.setText(suggestions_text)
+
+    def show_and_focus(self) -> None:
+        show_and_focus_window(self)
+        self._input.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
 
     def _center_on_screen(self) -> None:
         screen = self.screen()

@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-
+from typing import cast
 
 JsonPrimitive = str | int | float | bool | None
 JsonValue = JsonPrimitive | list["JsonValue"] | dict[str, "JsonValue"]
@@ -41,8 +41,11 @@ def _read_text(path: Path) -> str:
 
 def _parse_json(path: Path, raw_text: str) -> JsonValue:
     try:
-        return json.loads(raw_text)
+        payload = json.loads(raw_text)
+        return cast(JsonValue, payload)
     except json.JSONDecodeError as error:
         raise ValueError(
-            f"Invalid JSON value={str(path)!r}; expected format='valid JSON object file'."
+            "Invalid JSON "
+            f"value={str(path)!r}; "
+            "expected format='valid JSON object file'."
         ) from error

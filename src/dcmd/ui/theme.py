@@ -46,6 +46,11 @@ def build_window_stylesheet(colors: ThemeColors) -> str:
         "border-radius: 6px;"
         "padding: 10px 12px;"
         "}"
+        "QLabel#suggestionsLabel {"
+        f"color: {colors.muted};"
+        "font-size: 12px;"
+        "padding-left: 2px;"
+        "}"
     )
 
 
@@ -56,11 +61,7 @@ def format_history_html(entries: tuple[HistoryEntry, ...], colors: ThemeColors) 
         >>> format_history_html(tuple(), ThemeColors())
     """
     if not entries:
-        return (
-            f"<span style='color:{colors.muted};'>"
-            f"{PROMPT_TEXT}"
-            "</span>"
-        )
+        return f"<span style='color:{colors.muted};'>" f"{PROMPT_TEXT}" "</span>"
     return "".join(_entry_html(entry, colors) for entry in entries)
 
 

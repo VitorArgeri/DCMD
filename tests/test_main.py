@@ -13,7 +13,9 @@ def test_run_prints_execution_message(
     capsys: pytest.CaptureFixture[str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("dcmd.main._build_default_executor", lambda registry: FakeExecutor())
+    monkeypatch.setattr(
+        "dcmd.main._build_default_executor", lambda registry: FakeExecutor()
+    )
     exit_code = run(["yt"])
     captured = capsys.readouterr()
     assert exit_code == 0

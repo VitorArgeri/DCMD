@@ -1,9 +1,10 @@
 from pathlib import Path
 
 from dcmd.app import CommandSubmissionService
+from dcmd.core.autocomplete import AutocompleteEngine
 from dcmd.core.command_executor import ExecutionResult
-from dcmd.core.command_registry import load_command_registry
-from dcmd.core.history import SessionHistory
+from dcmd.core.command_registry import CommandRegistry, load_command_registry
+from dcmd.core.history import InputHistory, SessionHistory
 
 
 class FakeExecutor:
@@ -27,7 +28,7 @@ class FakeErrorExecutor:
 def test_submit_records_command_and_result() -> None:
     registry = load_command_registry(Path("config/commands.json"))
     executor = FakeExecutor()
-    service = CommandSubmissionService(registry, executor, SessionHistory())
+    service = build_service(registry, executor)
     outcome = service.submit("yt")
     assert outcome.accepted is True
     assert outcome.success is True
@@ -41,7 +42,7 @@ def test_submit_records_command_and_result() -> None:
 def test_submit_ignores_empty_input() -> None:
     registry = load_command_registry(Path("config/commands.json"))
     executor = FakeExecutor()
-    service = CommandSubmissionService(registry, executor, SessionHistory())
+    service = build_service(registry, executor)
     outcome = service.submit("   ")
     assert outcome.accepted is False
     assert service.history.entries() == ()
@@ -51,7 +52,7 @@ def test_submit_ignores_empty_input() -> None:
 def test_submit_rewrites_parse_error_for_ui() -> None:
     registry = load_command_registry(Path("config/commands.json"))
     executor = FakeErrorExecutor()
-    service = CommandSubmissionService(registry, executor, SessionHistory())
+    service = build_service(registry, executor)
     outcome = service.submit("unknown")
     assert outcome.accepted is True
     assert outcome.success is False
@@ -60,3 +61,16 @@ def test_submit_rewrites_parse_error_for_ui() -> None:
     assert entries[0].message == "unknown"
     assert entries[1].message == "Unknown command."
     assert entries[1].tone == "error"
+
+
+def build_service(
+    registry: CommandRegistry,
+    executor: FakeExecutor | FakeErrorExecutor,
+) -> CommandSubmissionService:
+    return CommandSubmissionService(
+        registry,
+        executor,
+        SessionHistory(),
+        InputHistory(),
+        AutocompleteEngine(registry),
+    )

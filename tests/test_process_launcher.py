@@ -11,6 +11,11 @@ class FakeCommandRunner:
         self.calls.append(command)
 
 
+class FailingCommandRunner:
+    def start(self, command: list[str]) -> None:
+        raise FileNotFoundError("missing executable")
+
+
 def test_open_url_builds_browser_command() -> None:
     runner = FakeCommandRunner()
     launcher = ProcessLauncher(runner)
@@ -30,3 +35,13 @@ def test_run_python_builds_python_command() -> None:
     launcher = ProcessLauncher(runner)
     launcher.run_python(Path("C:/Python/python.exe"), Path("C:/scripts/tool.py"))
     assert runner.calls == [["C:\\Python\\python.exe", "C:\\scripts\\tool.py"]]
+
+
+def test_open_program_returns_clear_error_for_missing_executable() -> None:
+    launcher = ProcessLauncher(FailingCommandRunner())
+    try:
+        launcher.open_program(Path("C:/Apps/Missing.exe"))
+    except ValueError as error:
+        assert "expected format='existing program executable path'" in str(error)
+    else:
+        raise AssertionError("missing executable should raise ValueError")

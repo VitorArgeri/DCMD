@@ -26,7 +26,9 @@ class SessionHistory:
             >>> history = SessionHistory()
             >>> history.add_command("yt")
         """
-        self._entries.append(HistoryEntry(prefix=">", message=command_text, tone="command"))
+        self._entries.append(
+            HistoryEntry(prefix=">", message=command_text, tone="command")
+        )
 
     def add_result(self, message: str, is_error: bool = False) -> None:
         """Append one execution result entry.
@@ -46,3 +48,59 @@ class SessionHistory:
             >>> history.entries()
         """
         return tuple(self._entries)
+
+
+class InputHistory:
+    """Navigate previously submitted commands during the current session.
+
+    Example:
+        >>> history = InputHistory()
+        >>> history.record("yt")
+    """
+
+    def __init__(self) -> None:
+        self._commands: list[str] = []
+        self._navigation_index: int | None = None
+        self._draft_text = ""
+
+    def record(self, command_text: str) -> None:
+        """Store one submitted command and reset navigation state.
+
+        Example:
+            >>> history = InputHistory()
+            >>> history.record("yt")
+        """
+        self._commands.append(command_text)
+        self._navigation_index = None
+        self._draft_text = ""
+
+    def previous(self, current_text: str) -> str:
+        """Return the previous command in history.
+
+        Example:
+            >>> history = InputHistory()
+            >>> history.previous("")
+        """
+        if not self._commands:
+            return current_text
+        if self._navigation_index is None:
+            self._draft_text = current_text
+            self._navigation_index = len(self._commands) - 1
+        else:
+            self._navigation_index = max(0, self._navigation_index - 1)
+        return self._commands[self._navigation_index]
+
+    def next(self, current_text: str) -> str:
+        """Return the next command in history or restore draft input.
+
+        Example:
+            >>> history = InputHistory()
+            >>> history.next("")
+        """
+        if self._navigation_index is None:
+            return current_text
+        if self._navigation_index >= len(self._commands) - 1:
+            self._navigation_index = None
+            return self._draft_text
+        self._navigation_index += 1
+        return self._commands[self._navigation_index]

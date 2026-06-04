@@ -3,7 +3,11 @@ from pathlib import Path
 import pytest
 
 from dcmd.utils.paths import project_root, scripts_directory
-from dcmd.utils.validators import require_mapping_keys, require_string, validate_known_identifier
+from dcmd.utils.validators import (
+    require_mapping_keys,
+    require_string,
+    validate_known_identifier,
+)
 
 
 def test_project_root_returns_repository_path() -> None:
@@ -24,7 +28,10 @@ def test_validate_known_identifier_accepts_known_value() -> None:
 
 def test_validate_known_identifier_rejects_unknown_value() -> None:
     result = validate_known_identifier("bad", frozenset({"yt"}), "registered command")
-    assert result == "Invalid identifier value='bad'; expected format='registered command'."
+    assert (
+        result
+        == "Invalid identifier value='bad'; expected format='registered command'."
+    )
 
 
 def test_require_mapping_keys_rejects_non_mapping() -> None:

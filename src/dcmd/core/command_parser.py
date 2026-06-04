@@ -67,7 +67,9 @@ def _parse_direct_command(
     text: str,
     registry: CommandRegistry,
 ) -> DirectCommand | ParsedError:
-    message = validate_known_identifier(text, registry.command_names, "registered command")
+    message = validate_known_identifier(
+        text, registry.command_names, "registered command"
+    )
     if message is not None:
         return ParsedError(message=message, value=text)
     return DirectCommand(identifier=text)
@@ -84,7 +86,9 @@ def _parse_search_command(
     query = parts[2].strip()
     if not query:
         return _invalid_command(text, "search <engine> <query>")
-    message = validate_known_identifier(engine, registry.search_engine_names, "registered search engine")
+    message = validate_known_identifier(
+        engine, registry.search_engine_names, "registered search engine"
+    )
     if message is not None:
         return ParsedError(message=message, value=engine)
     return SearchCommand(engine=engine, query=query)
@@ -98,7 +102,9 @@ def _parse_script_command(
     if len(parts) < 2 or not parts[1].strip():
         return _invalid_command(text, "exec <script-id>")
     identifier = parts[1].strip()
-    message = validate_known_identifier(identifier, registry.script_names, "registered script identifier")
+    message = validate_known_identifier(
+        identifier, registry.script_names, "registered script identifier"
+    )
     if message is not None:
         return ParsedError(message=message, value=identifier)
     return ScriptCommand(identifier=identifier)
@@ -112,14 +118,14 @@ def _parse_program_command(
     if len(parts) < 2 or not parts[1].strip():
         return _invalid_command(text, "open <program-id>")
     identifier = parts[1].strip()
-    message = validate_known_identifier(identifier, registry.program_names, "registered program identifier")
+    message = validate_known_identifier(
+        identifier, registry.program_names, "registered program identifier"
+    )
     if message is not None:
         return ParsedError(message=message, value=identifier)
     return ProgramCommand(identifier=identifier)
 
 
 def _invalid_command(value: str, expected_format: str) -> ParsedError:
-    message = (
-        f"Invalid command value={value!r}; expected format={expected_format!r}."
-    )
+    message = f"Invalid command value={value!r}; expected format={expected_format!r}."
     return ParsedError(message=message, value=value)

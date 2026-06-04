@@ -25,7 +25,9 @@ def require_string(payload: JsonObject, key: str) -> str:
     if isinstance(value, str) and value.strip():
         return value
     raise ValueError(
-        f"Invalid configuration value={key!r}; expected format='non-empty string field'."
+        "Invalid configuration "
+        f"value={key!r}; "
+        "expected format='non-empty string field'."
     )
 
 
@@ -42,6 +44,4 @@ def validate_known_identifier(
     normalized_value = value.strip()
     if normalized_value in known_values:
         return None
-    return (
-        f"Invalid identifier value={value!r}; expected format={expected_format!r}."
-    )
+    return f"Invalid identifier value={value!r}; expected format={expected_format!r}."

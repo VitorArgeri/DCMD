@@ -102,7 +102,9 @@ class CommandExecutor:
         if isinstance(registered_command, OpenProgramCommandConfig):
             return self._open_program_command(registered_command)
         raise ValueError(
-            f"Invalid identifier value={command.identifier!r}; expected format='registered program identifier'."
+            "Invalid identifier "
+            f"value={command.identifier!r}; "
+            "expected format='registered program identifier'."
         )
 
     def _get_registered_command(
@@ -113,7 +115,9 @@ class CommandExecutor:
         if command is not None:
             return command
         raise ValueError(
-            f"Invalid identifier value={identifier!r}; expected format='registered command'."
+            "Invalid identifier "
+            f"value={identifier!r}; "
+            "expected format='registered command'."
         )
 
     def _get_search_engine(self, identifier: str) -> SearchEngineConfig:
@@ -121,7 +125,9 @@ class CommandExecutor:
         if engine is not None:
             return engine
         raise ValueError(
-            f"Invalid identifier value={identifier!r}; expected format='registered search engine'."
+            "Invalid identifier "
+            f"value={identifier!r}; "
+            "expected format='registered search engine'."
         )
 
     def _get_script(self, identifier: str) -> ScriptConfig:
@@ -129,5 +135,7 @@ class CommandExecutor:
         if script is not None:
             return script
         raise ValueError(
-            f"Invalid identifier value={identifier!r}; expected format='registered script identifier'."
+            "Invalid identifier "
+            f"value={identifier!r}; "
+            "expected format='registered script identifier'."
         )
