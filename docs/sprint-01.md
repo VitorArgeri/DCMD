@@ -59,7 +59,7 @@ Expected new or updated files:
 - [ ] Configure `pyproject.toml` with Python version, test command, `black`, `ruff`, and type-checking settings.
 - [ ] Add project dependencies to `requirements.txt`.
 - [ ] Create `commands.json` with examples for `yt`, `vscode`, `script-1`, and search engines.
-- [ ] Create `settings.json` with the default hotkey `ctrl+alt+j`, theme values, and window defaults.
+- [ ] Create `settings.json` with the default hotkey `ctrl+shift+j`, theme values, and window defaults.
 - [ ] Create a typed JSON loader that reads a file path and returns validated parsed content.
 - [ ] Make JSON loader errors include the offending path and expected JSON format.
 - [ ] Create parser result types for direct commands, search commands, script commands, and program commands.

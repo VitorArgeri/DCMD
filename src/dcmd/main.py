@@ -25,12 +25,17 @@ def run(argv: list[str] | None = None) -> int:
     return 0 if result.success else 1
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     """Start the graphical launcher application.
 
     Example:
         >>> main()
     """
+    args = sys.argv[1:] if argv is None else argv
+    if _is_background_launch(args):
+        return run_application(show_on_startup=False)
+    if args:
+        return run(args)
     return run_application()
 
 
@@ -43,6 +48,10 @@ def _build_default_executor(registry: CommandRegistry) -> CommandExecutor:
 def _load_default_registry() -> CommandRegistry:
     commands_path = project_root() / "config" / "commands.json"
     return load_command_registry(commands_path)
+
+
+def _is_background_launch(args: list[str]) -> bool:
+    return args == ["--background"]
 
 
 if __name__ == "__main__":

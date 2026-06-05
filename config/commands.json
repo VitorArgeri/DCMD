@@ -1,7 +1,7 @@
 {
   "browser": {
     "name": "Opera GX",
-    "path": "C:/Users/<user>/AppData/Local/Programs/Opera GX/launcher.exe"
+    "path": "D:\\Navegador\\Opera\\opera_new.exe"
   },
   "commands": {
     "yt": {
@@ -11,6 +11,23 @@
     "vscode": {
       "type": "open_program",
       "path": "C:/Users/<user>/AppData/Local/Programs/Microsoft VS Code/Code.exe"
+    },
+    "modo estudo": {
+      "type": "workflow",
+      "actions": [
+        {
+          "type": "open_url",
+          "target": "https://vestibulares.estrategia.com/estudos-em-andamento?tab=recent_activities"
+        },
+        {
+          "type": "open_program",
+          "target": "D:\\Anotacoes\\Anki\\anki.exe"
+        },
+        {
+          "type": "open_program",
+          "target": "D:\\Anotacoes\\Obsidian-1.7.7.exe"
+        }
+      ]
     }
   },
   "search_engines": {

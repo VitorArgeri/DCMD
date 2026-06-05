@@ -25,7 +25,22 @@ class OpenProgramCommandConfig:
     kind: str = "open_program"
 
 
-RegisteredCommand = OpenUrlCommandConfig | OpenProgramCommandConfig
+@dataclass(frozen=True)
+class WorkflowActionConfig:
+    action_type: str
+    target: str
+
+
+@dataclass(frozen=True)
+class WorkflowCommandConfig:
+    identifier: str
+    actions: tuple[WorkflowActionConfig, ...]
+    kind: str = "workflow"
+
+
+RegisteredCommand = (
+    OpenUrlCommandConfig | OpenProgramCommandConfig | WorkflowCommandConfig
+)
 
 
 @dataclass(frozen=True)
@@ -116,10 +131,13 @@ def _build_command(identifier: str, item: JsonValue) -> RegisteredCommand:
     if command_type == "open_program":
         path = Path(require_string(command, "path"))
         return OpenProgramCommandConfig(identifier=identifier, path=path)
+    if command_type == "workflow":
+        actions = _build_workflow_actions(identifier, command)
+        return WorkflowCommandConfig(identifier=identifier, actions=actions)
     raise ValueError(
         "Invalid command "
         f"value={identifier!r}; "
-        "expected format='supported type open_url or open_program'."
+        "expected format='supported type open_url, open_program, or workflow'."
     )
 
 
@@ -159,6 +177,50 @@ def _require_object(value: JsonValue, identifier: str) -> JsonObject:
         "Invalid configuration "
         f"value={identifier!r}; "
         "expected format='JSON object field'."
+    )
+
+
+def _build_workflow_actions(
+    identifier: str,
+    command: JsonObject,
+) -> tuple[WorkflowActionConfig, ...]:
+    raw_actions = command.get("actions")
+    if not isinstance(raw_actions, list) or not raw_actions:
+        raise ValueError(
+            "Invalid command "
+            f"value={identifier!r}; "
+            "expected format='non-empty actions list'."
+        )
+    return tuple(
+        _build_workflow_action(identifier, index, item)
+        for index, item in enumerate(raw_actions)
+    )
+
+
+def _build_workflow_action(
+    identifier: str,
+    index: int,
+    item: JsonValue,
+) -> WorkflowActionConfig:
+    action = _require_object(item, f"{identifier}.actions[{index}]")
+    action_type = require_string(action, "type")
+    target = require_string(action, "target")
+    _validate_workflow_action_type(identifier, index, action_type)
+    return WorkflowActionConfig(action_type=action_type, target=target)
+
+
+def _validate_workflow_action_type(
+    identifier: str,
+    index: int,
+    action_type: str,
+) -> None:
+    supported_types = {"open_url", "open_program"}
+    if action_type in supported_types:
+        return
+    raise ValueError(
+        "Invalid workflow action "
+        f"value='{identifier}.actions[{index}].type={action_type}'; "
+        "expected format='open_url or open_program'."
     )
 
 

@@ -2,8 +2,6 @@
 
 from PyInstaller.utils.hooks import collect_data_files
 
-block_cipher = None
-
 pyside6_datas = collect_data_files("PySide6")
 
 a = Analysis(
@@ -31,6 +29,7 @@ exe = EXE(
     name="DCMD",
     debug=False,
     bootloader_ignore_signals=False,
+    exclude_binaries=True,
     strip=False,
     upx=True,
     console=False,
@@ -43,5 +42,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     name="DCMD",
-    contents_directory=".",
+    contents_directory="_internal",
 )

@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont, QShowEvent, QTextCursor
+from PySide6.QtGui import QCloseEvent, QFont, QShowEvent, QTextCursor
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -13,6 +13,7 @@ from dcmd.app import PROMPT_TEXT, CommandSubmissionService
 from dcmd.integrations.window_focus import show_and_focus_window
 from dcmd.ui.terminal_input import TerminalInput
 from dcmd.ui.theme import ThemeColors, build_window_stylesheet, format_history_html
+from dcmd.utils.diagnostics import log_diagnostic_event
 
 
 class MainWindow(QMainWindow):
@@ -35,6 +36,11 @@ class MainWindow(QMainWindow):
         super().showEvent(event)
         self._center_on_screen()
         self._input.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        log_diagnostic_event("window.close_ignored")
+        event.ignore()
+        self.hide()
 
     def _configure_window(self) -> None:
         self.setWindowTitle("DCMD")
@@ -77,6 +83,8 @@ class MainWindow(QMainWindow):
             self._input.clear()
             self._render_suggestions(tuple())
         self._render_history()
+        if outcome.hide_window:
+            self.hide()
 
     def _render_history(self) -> None:
         html = format_history_html(
@@ -93,8 +101,16 @@ class MainWindow(QMainWindow):
         self._suggestions_label.setText(suggestions_text)
 
     def show_and_focus(self) -> None:
+        log_diagnostic_event("window.show_and_focus")
         show_and_focus_window(self)
         self._input.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
+
+    def toggle_visibility(self) -> None:
+        if self.isVisible():
+            log_diagnostic_event("window.hide_from_hotkey")
+            self.hide()
+            return
+        self.show_and_focus()
 
     def _center_on_screen(self) -> None:
         screen = self.screen()

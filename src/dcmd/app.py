@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Protocol
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QMetaObject, QObject, Qt, Signal, Slot
+from PySide6.QtWidgets import QApplication
 
 from dcmd.core.autocomplete import AutocompleteEngine
 from dcmd.core.command_executor import CommandExecutor, ExecutionResult
@@ -21,6 +23,7 @@ from dcmd.integrations.windows_startup import (
     startup_directory,
 )
 from dcmd.runners.script_runner import SecureScriptRunner
+from dcmd.utils.diagnostics import log_diagnostic_event
 from dcmd.utils.paths import (
     config_directory,
     startup_launch_command,
@@ -30,15 +33,43 @@ from dcmd.utils.paths import (
 PROMPT_TEXT = "What command do you want to use?"
 
 
+class LauncherWindow(Protocol):
+    """Window behavior needed by the application bootstrap."""
+
+    def show(self) -> None:
+        """Show the window."""
+
+    def hide(self) -> None:
+        """Hide the window."""
+
+    def show_and_focus(self) -> None:
+        """Show the window and move focus to it."""
+
+    def toggle_visibility(self) -> None:
+        """Toggle the visible launcher state."""
+
+
 @dataclass(frozen=True)
 class SubmissionOutcome:
     accepted: bool
     message: str
     success: bool
+    hide_window: bool = False
+
+
+@dataclass(frozen=True)
+class ApplicationRuntime:
+    window: LauncherWindow
+    hotkey_bridge: "HotkeySignalBridge"
+    hotkey_listener: WindowsGlobalHotkey
 
 
 class HotkeySignalBridge(QObject):
     activated = Signal()
+
+    @Slot()
+    def notify_activated(self) -> None:
+        self.activated.emit()
 
 
 class CommandSubmissionService:
@@ -83,13 +114,21 @@ class CommandSubmissionService:
         command_text = text.strip()
         if not command_text:
             return SubmissionOutcome(accepted=False, message="", success=False)
+        if command_text.lower() == "cls":
+            self._history.clear()
+            return SubmissionOutcome(accepted=True, message="", success=True)
         self._input_history.record(command_text)
         self._history.add_command(command_text)
         parsed = parse_command(command_text, self._registry)
         result = self._executor.execute(parsed)
         message = _display_message(parsed, result)
         self._history.add_result(message, is_error=not result.success)
-        return SubmissionOutcome(accepted=True, message=message, success=result.success)
+        return SubmissionOutcome(
+            accepted=True,
+            message=message,
+            success=result.success,
+            hide_window=result.success,
+        )
 
 
 def build_command_service() -> CommandSubmissionService:
@@ -110,35 +149,72 @@ def build_command_service() -> CommandSubmissionService:
     )
 
 
-def run_application() -> int:
+def run_application(show_on_startup: bool = True) -> int:
     """Start the graphical launcher application.
 
     Example:
         >>> isinstance(run_application, object)
     """
-    from PySide6.QtWidgets import QApplication
-
-    from dcmd.ui.main_window import MainWindow
-
+    log_diagnostic_event("run_application.start", show_on_startup=show_on_startup)
     instance_guard = SingleInstanceGuard(WindowsNamedMutex("DCMD"))
     if not instance_guard.acquire():
+        log_diagnostic_event("run_application.instance_exists")
         return 0
-    app = QApplication([])
+    app = _create_qt_application()
     try:
-        service = build_command_service()
-        window_factory = SingleWindowFactory[MainWindow]()
-        hotkey_bridge = HotkeySignalBridge()
-        window = window_factory.get_or_create(lambda: MainWindow(service))
-        hotkey_bridge.activated.connect(window.show_and_focus)
-        listener = _build_hotkey_listener()
-        _sync_startup_setting()
-        _start_hotkey_listener(listener, hotkey_bridge)
-        window.show_and_focus()
-        exit_code = app.exec()
-        listener.stop()
-        return exit_code
+        runtime = _build_application_runtime(show_on_startup)
+        return _run_qt_event_loop(app, runtime)
+    except Exception as error:
+        log_diagnostic_event("run_application.exception", error=repr(error))
+        raise
     finally:
         instance_guard.release()
+
+
+def _create_qt_application() -> QApplication:
+    app = QApplication([])
+    app.setQuitOnLastWindowClosed(False)
+    return app
+
+
+def _build_application_runtime(show_on_startup: bool) -> ApplicationRuntime:
+    window = _build_launcher_window()
+    hotkey_bridge = HotkeySignalBridge()
+    listener = _build_hotkey_listener()
+    hotkey_bridge.activated.connect(window.toggle_visibility)
+    _sync_startup_setting()
+    _start_hotkey_listener(listener, hotkey_bridge)
+    _show_initial_window_state(window, show_on_startup)
+    return ApplicationRuntime(window, hotkey_bridge, listener)
+
+
+def _build_launcher_window() -> LauncherWindow:
+    from dcmd.ui.main_window import MainWindow
+
+    service = build_command_service()
+    window_factory = SingleWindowFactory[MainWindow]()
+    return window_factory.get_or_create(lambda: MainWindow(service))
+
+
+def _show_initial_window_state(
+    window: LauncherWindow,
+    show_on_startup: bool,
+) -> None:
+    if show_on_startup:
+        window.show_and_focus()
+        return
+    _prepare_background_window(window)
+
+
+def _run_qt_event_loop(
+    app: QApplication,
+    runtime: ApplicationRuntime,
+) -> int:
+    log_diagnostic_event("run_application.exec_enter")
+    exit_code = app.exec()
+    log_diagnostic_event("run_application.exec_exit", exit_code=exit_code)
+    runtime.hotkey_listener.stop()
+    return exit_code
 
 
 def _commands_path() -> Path:
@@ -159,19 +235,38 @@ def _start_hotkey_listener(
     bridge: HotkeySignalBridge,
 ) -> None:
     try:
-        listener.start(bridge.activated.emit)
-    except OSError:
+        listener.start(lambda: _queue_hotkey_activation(bridge))
+    except OSError as error:
+        log_diagnostic_event("hotkey.listener_error", error=repr(error))
         return
+
+
+def _queue_hotkey_activation(bridge: HotkeySignalBridge) -> None:
+    QMetaObject.invokeMethod(
+        bridge,
+        "notify_activated",
+        Qt.ConnectionType.QueuedConnection,
+    )
+
+
+def _prepare_background_window(window: LauncherWindow) -> None:
+    window.show()
+    window.hide()
+    log_diagnostic_event("window.background_prepared")
 
 
 def _sync_startup_setting() -> None:
     startup_enabled = load_startup_enabled(_settings_path())
     manager = WindowsStartupManager(startup_directory())
-    manager.sync(
-        startup_enabled,
-        startup_launch_command(),
-        startup_working_directory(),
-    )
+    try:
+        manager.sync(
+            startup_enabled,
+            startup_launch_command(),
+            startup_working_directory(),
+        )
+    except OSError as error:
+        log_diagnostic_event("startup.sync_error", error=repr(error))
+        return
 
 
 def _display_message(parsed: object, result: ExecutionResult) -> str:

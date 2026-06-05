@@ -69,8 +69,27 @@ def test_startup_launch_command_uses_executable_when_frozen() -> None:
     executable_path = Path("C:/DCMD/DCMD.exe")
     assert startup_launch_command(executable_path=executable_path, frozen=True) == (
         "C:\\DCMD\\DCMD.exe",
+        "--background",
+    )
+
+
+def test_startup_launch_command_uses_background_mode_in_source_mode() -> None:
+    executable_path = Path("C:/Python/python.exe")
+    assert startup_launch_command(executable_path=executable_path, frozen=False) == (
+        "C:\\Python\\python.exe",
+        "-m",
+        "dcmd.main",
+        "--background",
     )
 
 
 def test_startup_working_directory_uses_src_in_source_mode() -> None:
     assert startup_working_directory(frozen=False) == project_root() / "src"
+
+
+def test_startup_working_directory_uses_executable_parent_when_frozen() -> None:
+    executable_path = Path("C:/DCMD/DCMD.exe")
+    assert startup_working_directory(
+        frozen=True,
+        executable_path=executable_path,
+    ) == Path("C:/DCMD")

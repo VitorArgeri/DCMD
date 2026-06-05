@@ -11,7 +11,7 @@ By the end of this sprint, DCMD must remain available while the user works in ot
 Included in this sprint:
 
 - Implement configurable global hotkey support.
-- Use `Ctrl + Alt + J` as the default hotkey.
+- Use `Ctrl + Shift + J` as the default hotkey.
 - Load the hotkey from `settings.json`.
 - Show the hidden window when the hotkey is pressed.
 - Focus the existing window when the hotkey is pressed.
@@ -51,7 +51,7 @@ Expected new or updated files:
 - [ ] Choose the global hotkey library after checking Windows behavior.
 - [ ] Wrap the chosen hotkey library behind a project-owned interface.
 - [ ] Load the configured hotkey from `settings.json`.
-- [ ] Fall back to `ctrl+alt+j` when no custom hotkey is configured.
+- [ ] Fall back to `ctrl+shift+j` when no custom hotkey is configured.
 - [ ] Register the global hotkey during app startup.
 - [ ] Ensure hotkey registration does not block the Qt event loop.
 - [ ] Show the launcher window when the hotkey is pressed.
@@ -74,7 +74,7 @@ Expected new or updated files:
 
 ## Acceptance Criteria
 
-- The default hotkey is `Ctrl + Alt + J`.
+- The default hotkey is `Ctrl + Shift + J`.
 - The hotkey can be changed through `settings.json`.
 - Pressing the hotkey shows DCMD if it is hidden.
 - Pressing the hotkey focuses DCMD if it is already open.
@@ -134,9 +134,9 @@ Manual verification:
 
 - Start DCMD.
 - Focus another application.
-- Press `Ctrl + Alt + J`.
+- Press `Ctrl + Shift + J`.
 - Confirm DCMD appears and receives focus.
-- Press `Ctrl + Alt + J` again.
+- Press `Ctrl + Shift + J` again.
 - Confirm the same window receives focus instead of a duplicate window opening.
 - Submit multiple commands.
 - Use up and down arrows to navigate previous inputs.
@@ -157,7 +157,7 @@ Automated minimum tests:
 ## Final Checklist
 
 - [ ] Configurable global hotkey works.
-- [ ] Default hotkey is `Ctrl + Alt + J`.
+- [ ] Default hotkey is `Ctrl + Shift + J`.
 - [ ] Window shows on hotkey.
 - [ ] Window focuses on hotkey.
 - [ ] Duplicate windows are avoided.

@@ -9,7 +9,7 @@ The software will be developed in **Python**, run entirely locally, and will not
 By default, the global hotkey will be:
 
 ```text
-Ctrl + Alt + J
+Ctrl + Shift + J
 ```
 
 DCMD will run in the background after Windows starts. When the user presses the configured hotkey, the DCMD window should appear and receive focus automatically.
@@ -53,7 +53,7 @@ Build a lightweight local Windows launcher with a terminal-like graphical interf
 The user presses:
 
 ```text
-Ctrl + Alt + J
+Ctrl + Shift + J
 ```
 
 DCMD appears and receives focus. The user types:
@@ -102,7 +102,7 @@ Find and execute the registered script named script-1.py inside the scripts fold
 
 The system must allow the user to open or focus DCMD using a global hotkey.
 
-- Default hotkey: `Ctrl + Alt + J`.
+- Default hotkey: `Ctrl + Shift + J`.
 - The hotkey must be configurable through a settings file.
 - The hotkey must work even when another application is focused.
 
@@ -610,7 +610,7 @@ Responsibilities:
 
 ## 5.4 Command Execution Flow
 
-1. The user presses `Ctrl + Alt + J`.
+1. The user presses `Ctrl + Shift + J`.
 2. DCMD shows or focuses the window.
 3. The user types a command.
 4. The UI sends the text to the parser.
@@ -638,7 +638,7 @@ Example:
     "name": "Opera GX",
     "path": "C:/Users/<user>/AppData/Local/Programs/Opera GX/launcher.exe"
   },
-  "hotkey": "ctrl+alt+j",
+  "hotkey": "ctrl+shift+j",
   "commands": {
     "yt": {
       "type": "open_url",
@@ -886,7 +886,7 @@ Make DCMD usable as a real background launcher.
 ### Deliverables
 
 - Implement configurable global hotkey.
-- Set `Ctrl + Alt + J` as the default hotkey.
+- Set `Ctrl + Shift + J` as the default hotkey.
 - Show or focus the window when the hotkey is pressed.
 - Prevent multiple unnecessary window instances.
 - Implement command history navigation with the up and down arrow keys.
@@ -937,7 +937,7 @@ DCMD can be used as a local Windows application, start in the background with th
 - The visual design will use a black background, white text, and red accents.
 - The design will be inspired by modern terminals and Claude Code-like interfaces.
 - The app will be activated through a global hotkey.
-- The default hotkey will be `Ctrl + Alt + J`.
+- The default hotkey will be `Ctrl + Shift + J`.
 - The hotkey will be configurable.
 - The window must receive focus when called.
 - Commands will be configured in `.json` files.
@@ -1065,7 +1065,7 @@ List what is included and what is not included in the sprint.
 
 The project will be considered successful when:
 
-- DCMD opens or focuses with `Ctrl + Alt + J`.
+- DCMD opens or focuses with `Ctrl + Shift + J`.
 - The graphical interface is functional and visually aligned with the proposed design.
 - The `yt` command opens YouTube in Opera GX.
 - The `search yt gameplays` command searches for `gameplays` on YouTube using Opera GX.

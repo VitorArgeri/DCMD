@@ -150,7 +150,7 @@ Manual verification:
 - Build the executable.
 - Start DCMD from the generated `.exe`.
 - Confirm the launcher window appears.
-- Focus another application and press `Ctrl + Alt + J`.
+- Focus another application and press `Ctrl + Shift + J`.
 - Confirm DCMD appears and receives focus.
 - Run `yt`.
 - Run `search yt gameplays`.

@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-from dcmd.app import PROMPT_TEXT
 from dcmd.core.history import HistoryEntry
 
 
@@ -61,7 +60,7 @@ def format_history_html(entries: tuple[HistoryEntry, ...], colors: ThemeColors) 
         >>> format_history_html(tuple(), ThemeColors())
     """
     if not entries:
-        return f"<span style='color:{colors.muted};'>" f"{PROMPT_TEXT}" "</span>"
+        return ""
     return "".join(_entry_html(entry, colors) for entry in entries)
 
 

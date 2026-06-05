@@ -9,6 +9,8 @@ from dcmd.core.command_registry import (
     OpenUrlCommandConfig,
     ScriptConfig,
     SearchEngineConfig,
+    WorkflowActionConfig,
+    WorkflowCommandConfig,
     build_command_registry,
     load_command_registry,
 )
@@ -19,7 +21,7 @@ def test_load_command_registry_returns_known_names() -> None:
     assert registry == CommandRegistry(
         browser=BrowserConfig(
             name="Opera GX",
-            path=Path("C:/Users/<user>/AppData/Local/Programs/Opera GX/launcher.exe"),
+            path=Path("D:/Navegador/Opera/opera_new.exe"),
         ),
         commands={
             "yt": OpenUrlCommandConfig(
@@ -30,6 +32,23 @@ def test_load_command_registry_returns_known_names() -> None:
                 identifier="vscode",
                 path=Path(
                     "C:/Users/<user>/AppData/Local/Programs/Microsoft VS Code/Code.exe"
+                ),
+            ),
+            "modo estudo": WorkflowCommandConfig(
+                identifier="modo estudo",
+                actions=(
+                    WorkflowActionConfig(
+                        action_type="open_url",
+                        target="https://vestibulares.estrategia.com/estudos-em-andamento?tab=recent_activities",
+                    ),
+                    WorkflowActionConfig(
+                        action_type="open_program",
+                        target="D:\\Anotacoes\\Anki\\anki.exe",
+                    ),
+                    WorkflowActionConfig(
+                        action_type="open_program",
+                        target="D:\\Anotacoes\\Obsidian-1.7.7.exe",
+                    ),
                 ),
             ),
         },
@@ -95,4 +114,20 @@ def test_build_command_registry_rejects_missing_program_path() -> None:
         "scripts": {},
     }
     with pytest.raises(ValueError, match="non-empty string field"):
+        build_command_registry(payload)
+
+
+def test_build_command_registry_rejects_unsupported_workflow_action() -> None:
+    payload = {
+        "browser": {"name": "Opera GX", "path": "C:/Opera/launcher.exe"},
+        "commands": {
+            "modo estudo": {
+                "type": "workflow",
+                "actions": [{"type": "script", "target": "study-setup.py"}],
+            }
+        },
+        "search_engines": {},
+        "scripts": {},
+    }
+    with pytest.raises(ValueError, match="expected format='open_url or open_program'"):
         build_command_registry(payload)

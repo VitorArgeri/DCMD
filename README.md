@@ -26,6 +26,12 @@ Source run:
 .\.venv\Scripts\python.exe -m dcmd.main
 ```
 
+Background run:
+
+```text
+.\.venv\Scripts\pythonw.exe -m dcmd.main --background
+```
+
 CLI smoke path:
 
 ```text
@@ -68,7 +74,7 @@ Main files:
 
 Relevant settings:
 
-- `hotkey`: global launcher shortcut, default `ctrl+alt+j`
+- `hotkey`: global launcher shortcut, default `ctrl+shift+j`
 - `startup.enabled`: when `true`, DCMD writes `DCMD.cmd` into the Windows Startup folder
 
 ## Startup Behavior
@@ -76,4 +82,5 @@ Relevant settings:
 DCMD uses the Windows Startup folder as the MVP startup mechanism.
 
 - packaged runs create a Startup entry that launches the built `DCMD.exe`
-- source runs create a Startup entry that launches `pythonw -m dcmd.main` from the `src` directory when available
+- packaged runs add `--background` so DCMD stays resident until the hotkey is pressed
+- source runs create a Startup entry that launches `pythonw -m dcmd.main --background` from the `src` directory when available

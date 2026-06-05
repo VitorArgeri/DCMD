@@ -1,7 +1,7 @@
 {
-  "hotkey": "ctrl+alt+j",
+  "hotkey": "ctrl+shift+j",
   "startup": {
-    "enabled": false
+    "enabled": true
   },
   "theme": {
     "background": "#050505",

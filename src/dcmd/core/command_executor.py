@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pathlib import Path
 from urllib.parse import quote_plus
 
 from dcmd.core.command_parser import (
@@ -15,6 +16,8 @@ from dcmd.core.command_registry import (
     OpenUrlCommandConfig,
     ScriptConfig,
     SearchEngineConfig,
+    WorkflowActionConfig,
+    WorkflowCommandConfig,
 )
 from dcmd.integrations.process_launcher import ProcessLauncher
 from dcmd.runners.script_runner import ScriptRunner
@@ -69,6 +72,8 @@ class CommandExecutor:
         command = self._get_registered_command(identifier)
         if isinstance(command, OpenUrlCommandConfig):
             return self._open_url_command(command)
+        if isinstance(command, WorkflowCommandConfig):
+            return self._execute_workflow_command(command)
         return self._open_program_command(command)
 
     def _open_url_command(self, command: OpenUrlCommandConfig) -> ExecutionResult:
@@ -107,10 +112,32 @@ class CommandExecutor:
             "expected format='registered program identifier'."
         )
 
+    def _execute_workflow_command(
+        self,
+        command: WorkflowCommandConfig,
+    ) -> ExecutionResult:
+        for action in command.actions:
+            self._execute_workflow_action(action)
+        message = f"Running workflow {command.identifier}."
+        return ExecutionResult(success=True, message=message)
+
+    def _execute_workflow_action(self, action: WorkflowActionConfig) -> None:
+        if action.action_type == "open_url":
+            self._process_launcher.open_url(self._registry.browser.path, action.target)
+            return
+        if action.action_type == "open_program":
+            self._process_launcher.open_program(Path(action.target))
+            return
+        raise ValueError(
+            "Invalid workflow action "
+            f"value={action.action_type!r}; "
+            "expected format='open_url or open_program'."
+        )
+
     def _get_registered_command(
         self,
         identifier: str,
-    ) -> OpenUrlCommandConfig | OpenProgramCommandConfig:
+    ) -> OpenUrlCommandConfig | OpenProgramCommandConfig | WorkflowCommandConfig:
         command = self._registry.commands.get(identifier)
         if command is not None:
             return command

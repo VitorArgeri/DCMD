@@ -15,6 +15,8 @@ from dcmd.core.command_registry import (
     OpenUrlCommandConfig,
     ScriptConfig,
     SearchEngineConfig,
+    WorkflowActionConfig,
+    WorkflowCommandConfig,
 )
 
 
@@ -75,6 +77,22 @@ def test_execute_script_command_delegates_to_script_runner() -> None:
     ]
 
 
+def test_execute_workflow_command_runs_all_actions_in_order() -> None:
+    executor, launcher, _ = build_executor()
+    result = executor.execute(DirectCommand(identifier="modo estudo"))
+    assert result.success is True
+    assert launcher.url_calls == [
+        (
+            Path("C:/Opera/launcher.exe"),
+            "https://vestibulares.estrategia.com/estudos-em-andamento?tab=recent_activities",
+        )
+    ]
+    assert launcher.program_calls == [
+        Path("D:/Anotacoes/Anki/anki.exe"),
+        Path("D:/Anotacoes/Obsidian-1.7.7.exe"),
+    ]
+
+
 def test_execute_invalid_parse_result_returns_error() -> None:
     executor, _, _ = build_executor()
     result = executor.execute(ParsedError(message="Unknown command.", value="bad"))
@@ -116,6 +134,23 @@ def build_executor() -> tuple[CommandExecutor, FakeProcessLauncher, FakeScriptRu
         commands={
             "yt": OpenUrlCommandConfig("yt", "https://www.youtube.com"),
             "vscode": OpenProgramCommandConfig("vscode", Path("C:/Apps/Code.exe")),
+            "modo estudo": WorkflowCommandConfig(
+                "modo estudo",
+                actions=(
+                    WorkflowActionConfig(
+                        action_type="open_url",
+                        target="https://vestibulares.estrategia.com/estudos-em-andamento?tab=recent_activities",
+                    ),
+                    WorkflowActionConfig(
+                        action_type="open_program",
+                        target="D:/Anotacoes/Anki/anki.exe",
+                    ),
+                    WorkflowActionConfig(
+                        action_type="open_program",
+                        target="D:/Anotacoes/Obsidian-1.7.7.exe",
+                    ),
+                ),
+            ),
         },
         search_engines={
             "google": SearchEngineConfig(

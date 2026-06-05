@@ -69,14 +69,17 @@ def startup_launch_command(
         executable = (
             Path(sys.executable) if executable_path is None else executable_path
         )
-        return (str(executable.resolve()),)
+        return (str(executable.resolve()), "--background")
     python_path = _python_startup_executable(
         Path(sys.executable) if executable_path is None else executable_path
     )
-    return (str(python_path), "-m", "dcmd.main")
+    return (str(python_path), "-m", "dcmd.main", "--background")
 
 
-def startup_working_directory(frozen: bool | None = None) -> Path:
+def startup_working_directory(
+    frozen: bool | None = None,
+    executable_path: Path | None = None,
+) -> Path:
     """Return the working directory used by the Startup-folder launcher.
 
     Example:
@@ -84,7 +87,10 @@ def startup_working_directory(frozen: bool | None = None) -> Path:
     """
     is_frozen = getattr(sys, "frozen", False) if frozen is None else frozen
     if is_frozen:
-        return project_root()
+        executable = (
+            Path(sys.executable) if executable_path is None else executable_path
+        )
+        return executable.resolve().parent
     return project_root() / "src"
 
 

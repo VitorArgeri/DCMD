@@ -49,6 +49,15 @@ class SessionHistory:
         """
         return tuple(self._entries)
 
+    def clear(self) -> None:
+        """Remove all session entries from the rendered history.
+
+        Example:
+            >>> history = SessionHistory()
+            >>> history.clear()
+        """
+        self._entries.clear()
+
 
 class InputHistory:
     """Navigate previously submitted commands during the current session.

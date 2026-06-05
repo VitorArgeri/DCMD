@@ -5,6 +5,7 @@ from pathlib import Path
 from threading import Event, Thread
 from typing import Callable
 
+from dcmd.utils.diagnostics import log_diagnostic_event
 from dcmd.utils.json_loader import load_json_object
 
 WM_HOTKEY = 0x0312
@@ -15,7 +16,7 @@ MOD_SHIFT = 0x0004
 MOD_WIN = 0x0008
 MOD_NOREPEAT = 0x4000
 HOTKEY_ID = 1
-DEFAULT_HOTKEY = "ctrl+alt+j"
+DEFAULT_HOTKEY = "ctrl+shift+j"
 USER32 = ctypes.windll.user32
 
 
@@ -43,7 +44,7 @@ def parse_hotkey(hotkey_text: str) -> HotkeyBinding:
     """Parse one hotkey string into Windows registration values.
 
     Example:
-        >>> parse_hotkey("ctrl+alt+j")
+        >>> parse_hotkey("ctrl+shift+j")
     """
     normalized = hotkey_text.strip().lower()
     parts = tuple(part.strip() for part in normalized.split("+") if part.strip())
@@ -71,10 +72,16 @@ class WindowsGlobalHotkey:
         """
         if self._thread is not None:
             return
+        log_diagnostic_event("hotkey.start", binding=self._binding.label)
         self._thread = Thread(target=self._run, args=(callback,), daemon=True)
         self._thread.start()
         self._ready.wait(timeout=2)
         if self._failed.is_set():
+            log_diagnostic_event(
+                "hotkey.start_failed",
+                binding=self._binding.label,
+                error=self._error_message,
+            )
             raise OSError(self._error_message)
 
     def stop(self) -> None:
@@ -104,10 +111,12 @@ class WindowsGlobalHotkey:
             self._failed.set()
             self._ready.set()
             return
+        log_diagnostic_event("hotkey.registered", binding=self._binding.label)
         self._ready.set()
         message = wintypes.MSG()
         while USER32.GetMessageW(ctypes.byref(message), None, 0, 0) > 0:
             if message.message == WM_HOTKEY:
+                log_diagnostic_event("hotkey.triggered", binding=self._binding.label)
                 callback()
         USER32.UnregisterHotKey(None, HOTKEY_ID)
 
@@ -127,7 +136,7 @@ def _parse_modifiers(parts: tuple[str, ...]) -> int:
             raise ValueError(
                 "Invalid hotkey "
                 f"value={'+'.join(parts)!r}; "
-                "expected format='ctrl+alt+j'."
+                "expected format='ctrl+shift+j'."
             )
     if modifiers:
         return modifiers

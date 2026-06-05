@@ -15,7 +15,7 @@ def test_load_hotkey_binding_returns_default_when_missing(tmp_path: Path) -> Non
 
 
 def test_parse_hotkey_returns_windows_binding() -> None:
-    binding = parse_hotkey("ctrl+alt+j")
-    assert binding.label == "ctrl+alt+j"
+    binding = parse_hotkey("ctrl+shift+j")
+    assert binding.label == "ctrl+shift+j"
     assert binding.modifiers > 0
     assert binding.virtual_key == ord("J")
